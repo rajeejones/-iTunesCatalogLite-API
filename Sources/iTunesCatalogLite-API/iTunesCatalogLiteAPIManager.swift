@@ -38,6 +38,14 @@ public class iTunesCatalogLiteManager {
                 return
             }
 
+            // gather raw data in [String: AnyHashable]
+            guard let rawJson: [String: AnyHashable] = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: AnyHashable] else {
+                completion(.failure(.decodingError))
+                return
+            }
+
+            self.decodeCatalogResponse(rawJson)
+
             guard let searchResponse = try? JSONDecoder().decode(iTunesSearchResponse.self, from: data) else {
                 completion(.failure(.decodingError))
                 return
@@ -45,6 +53,49 @@ public class iTunesCatalogLiteManager {
 
             completion(.success(searchResponse.results))
         }.resume()
+    }
+
+    public func decodeCatalogResponse(_ jsonObject: [String: AnyHashable]) {
+        guard let results = jsonObject["results"] as? [AnyHashable] else {
+            // handle error
+            return
+        }
+
+        var mediaKeys = Set<String>()
+        // parse all of the unique types
+        results.forEach({ result in
+            if let media = result as? [String: AnyHashable],
+                let kind = media["kind"] as? String {
+                mediaKeys.insert(kind)
+            }
+        })
+
+        var mappedResponse = [(kind: String, results: [AnyHashable])]()
+
+        mediaKeys.forEach({ key in
+            let mediaArray: [AnyHashable] = results.compactMap({ result in
+                guard let media = result as? [String: AnyHashable] else {
+                    return nil
+                }
+
+                if (media["kind"] as? String) == key {
+                    return media
+                } else {
+                    return nil
+                }
+            }) as [AnyHashable]
+
+            var mediaResults = [AnyHashable]()
+            mediaArray.forEach({
+                mediaResults.append($0)
+            })
+
+            mappedResponse.append((kind: key, results: mediaResults))
+        })
+
+        print(mappedResponse)
+
+
     }
 }
 

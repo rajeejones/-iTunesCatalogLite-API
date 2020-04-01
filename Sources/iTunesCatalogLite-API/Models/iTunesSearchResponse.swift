@@ -14,6 +14,7 @@ struct iTunesSearchResponse: Codable {
     enum CodingKeys: String, CodingKey {
         case results = "results"
     }
+
 }
 
 /// Wrapper for iTunes Search results [Documentation](https://affiliate.itunes.apple.com/resources/documentation/itunes-store-web-service-search-api/#understand)
