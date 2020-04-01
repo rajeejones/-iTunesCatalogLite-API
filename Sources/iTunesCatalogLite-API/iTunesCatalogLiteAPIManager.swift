@@ -80,7 +80,7 @@ extension iTunesCatalogLiteManager {
         }
 
         return URLRequest(url: url,
-                          cachePolicy: .returnCacheDataElseLoad,
+                          cachePolicy: .reloadIgnoringCacheData,
                           timeoutInterval: iTunesCatalogLiteManager.requestTimeout)
     }
 

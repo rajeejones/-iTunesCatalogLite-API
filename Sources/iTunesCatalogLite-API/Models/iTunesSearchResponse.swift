@@ -11,13 +11,13 @@ import Foundation
 /// Wrapper for iTunes Search results [Documentation](https://affiliate.itunes.apple.com/resources/documentation/itunes-store-web-service-search-api/#understand)
 public struct iTunesSearchResult: Codable {
     public private(set) var id: Int
-    public private(set) var name: String
-    public private(set) var artwork: String
-    public private(set) var genre: String
-    public private(set) var url: String
+    public private(set) var name: String?
+    public private(set) var artwork: String?
+    public private(set) var genre: String?
+    public private(set) var url: String?
     public private(set) var kind: String
-    public private(set) var previewUrl: String
-    public private(set) var collectionName: String
+    public private(set) var previewUrl: String?
+    public private(set) var collectionName: String?
 
     /// `iTunesResultType` wrapper of the kind of content
     public var type: iTunesResultType {

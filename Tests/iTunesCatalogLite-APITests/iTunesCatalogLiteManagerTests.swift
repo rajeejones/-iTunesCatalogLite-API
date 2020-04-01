@@ -21,7 +21,7 @@ final class iTunesCatalogLiteManagerTests: XCTestCase {
     }
 
     func testLiveResponse() {
-        guard let mockSearchRequest = iTunesSearchRequest(term: "jamie", media: .music, limit: 10),
+        guard let mockSearchRequest = iTunesSearchRequest(term: "data", media: .movie, limit: 10),
             let urlRequest = iTunesCatalogLiteManager.shared.createUrlRequest(mockSearchRequest) else {
                 XCTFail("Could not create urlRequest")
                 return
@@ -38,7 +38,8 @@ final class iTunesCatalogLiteManagerTests: XCTestCase {
                 iTunesCatalogLiteManager.shared.decodeSearchResponse(from: searchResults) { formattedResult in
                     switch formattedResult {
                     case .success(let response):
-                        XCTAssert(response[.song]?.count == 10)
+                        let count = response[.featureMovie]?.count ?? 0
+                        XCTAssert(count <= 10)
                         break
                     case .failure:
                         XCTFail("Could not get a response from server")
