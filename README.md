@@ -2,6 +2,8 @@
 
 This package provides the `iTunesCatalogLiteManager` as a way to search iTunes and gather `iTunesSearchResult`'s
 
+Supporting API for the [iTunesCatalogChallenge](https://github.com/rajeejones/iTunesCatalogLite)
+
 ### Making a request:
 
 Use the `.shared()` iTunesCatalogLiteManager to search the catalog while providing your request object
