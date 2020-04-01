@@ -20,9 +20,9 @@ public class iTunesCatalogLiteManager {
     /// Searches the iTunes Catalog asynchronously for the given search request
     /// - Parameters:
     ///   - searchRequest: `iTunesSearchRequest` used to gather data from iTunes
-    ///   - completion: `Result<[iTunesSearchResult], CatalogAPIError` that holds the response or an error
+    ///   - completion: `Result<Data, CatalogAPIError` that holds the JSON response or an error
     public func searchCatalog(_ searchRequest: iTunesSearchRequest,
-                              completion: @escaping (Result<[iTunesSearchResult], CatalogAPIError>) -> Void) {
+                              completion: @escaping (Result<Data, CatalogAPIError>) -> Void) {
         guard let urlRequest = createUrlRequest(searchRequest) else {
             completion(.failure(.malformedUrlRequestError))
             return
@@ -39,63 +39,35 @@ public class iTunesCatalogLiteManager {
             }
 
             // gather raw data in [String: AnyHashable]
-            guard let rawJson: [String: AnyHashable] = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: AnyHashable] else {
+            guard let rawJson: [String: AnyHashable] = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: AnyHashable],
+                let dataResponse = self.constructData(from: rawJson) else {
                 completion(.failure(.decodingError))
                 return
             }
-
-            self.decodeCatalogResponse(rawJson)
-
-            guard let searchResponse = try? JSONDecoder().decode(iTunesSearchResponse.self, from: data) else {
-                completion(.failure(.decodingError))
-                return
-            }
-
-            completion(.success(searchResponse.results))
+            completion(.success(dataResponse))
         }.resume()
     }
 
-    public func decodeCatalogResponse(_ jsonObject: [String: AnyHashable]) {
-        guard let results = jsonObject["results"] as? [AnyHashable] else {
-            // handle error
+    /// Helper to decode iTunes Search requests to a type safe model
+    /// - Parameters:
+    ///   - jsonData: `Data` of the response data from `searchCatalog`
+    ///   - completion: `Result<[iTunesResultType: [iTunesSearchResult]], CatalogAPIError` that holds the typed response or an error
+    public func decodeSearchResponse(from jsonData: Data,
+                                     completion: @escaping (Result<[iTunesResultType: [iTunesSearchResult]], CatalogAPIError>) -> Void) {
+        guard let response = try? JSONDecoder().decode([String: [iTunesSearchResult]].self, from: jsonData) else {
+            completion(.failure(.decodingError))
             return
         }
 
-        var mediaKeys = Set<String>()
-        // parse all of the unique types
-        results.forEach({ result in
-            if let media = result as? [String: AnyHashable],
-                let kind = media["kind"] as? String {
-                mediaKeys.insert(kind)
+        var typedResponse = [iTunesResultType: [iTunesSearchResult]]()
+
+        for result in response {
+            if let type = iTunesResultType(rawValue: result.key.lowercased()) {
+                typedResponse[type] = result.value
             }
-        })
+        }
 
-        var mappedResponse = [(kind: String, results: [AnyHashable])]()
-
-        mediaKeys.forEach({ key in
-            let mediaArray: [AnyHashable] = results.compactMap({ result in
-                guard let media = result as? [String: AnyHashable] else {
-                    return nil
-                }
-
-                if (media["kind"] as? String) == key {
-                    return media
-                } else {
-                    return nil
-                }
-            }) as [AnyHashable]
-
-            var mediaResults = [AnyHashable]()
-            mediaArray.forEach({
-                mediaResults.append($0)
-            })
-
-            mappedResponse.append((kind: key, results: mediaResults))
-        })
-
-        print(mappedResponse)
-
-
+        completion(.success(typedResponse))
     }
 }
 
@@ -110,6 +82,36 @@ extension iTunesCatalogLiteManager {
         return URLRequest(url: url,
                           cachePolicy: .returnCacheDataElseLoad,
                           timeoutInterval: iTunesCatalogLiteManager.requestTimeout)
+    }
+
+    func constructData(from jsonObject: [String: AnyHashable]) -> Data? {
+        guard let results = jsonObject["results"] as? [AnyHashable] else {
+            return nil
+        }
+
+        var response = [String: [AnyHashable]]()
+
+        // parse all of the unique types
+        results.forEach({ result in
+            if let media = result as? [String: AnyHashable],
+                let kind = media["kind"] as? String {
+                if var existingValues = response[kind] {
+                    existingValues.append(result)
+                    response.updateValue(existingValues, forKey: kind)
+                } else {
+                    response[kind] = [result]
+                }
+            }
+        })
+
+        let jsonData: Data?
+        if #available(iOS 11.0, *) {
+            jsonData = try? JSONSerialization.data(withJSONObject: response, options: .sortedKeys)
+        } else {
+            jsonData = try? JSONSerialization.data(withJSONObject: response, options: .prettyPrinted)
+        }
+
+        return jsonData
     }
 }
 
