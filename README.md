@@ -19,4 +19,7 @@ Use the `.shared()` iTunesCatalogLiteManager to search the catalog while providi
         })
 …
 
+### Optional 
+
+Use the `decodeSearchResponse` to decode the API  to a strongly typed response
 
