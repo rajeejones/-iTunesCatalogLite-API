@@ -8,7 +8,7 @@ Supporting API for the [iTunesCatalogChallenge](https://github.com/rajeejones/iT
 
 Use the `.shared()` iTunesCatalogLiteManager to search the catalog while providing your request object
 
-…
+```swift
     
     let searchRequest = iTunesSearchRequest(term: "Jack Johnson")
     iTunesCatalogLiteManager.shared().searchCatalog(searchRequest,
@@ -19,7 +19,7 @@ Use the `.shared()` iTunesCatalogLiteManager to search the catalog while providi
             case .failure(let error):
             // handle errors
         })
-…
+```
 
 ### Optional 
 
