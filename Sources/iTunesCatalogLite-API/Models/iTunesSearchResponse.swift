@@ -8,14 +8,6 @@
 
 import Foundation
 
-struct iTunesSearchResponse: Codable {
-    var results: [iTunesSearchResult]
-
-    enum CodingKeys: String, CodingKey {
-        case results = "results"
-    }
-}
-
 /// Wrapper for iTunes Search results [Documentation](https://affiliate.itunes.apple.com/resources/documentation/itunes-store-web-service-search-api/#understand)
 public struct iTunesSearchResult: Codable {
     public private(set) var id: Int
@@ -23,7 +15,7 @@ public struct iTunesSearchResult: Codable {
     public private(set) var artwork: String
     public private(set) var genre: String
     public private(set) var url: String
-    internal private(set) var kind: String
+    public private(set) var kind: String
     public private(set) var previewUrl: String
     public private(set) var collectionName: String
 
@@ -42,10 +34,11 @@ public struct iTunesSearchResult: Codable {
         case previewUrl
         case collectionName
     }
+
 }
 
 /// Wrapper for the kind of content returned by the search request.
-public enum iTunesResultType: String, RawRepresentable {
+public enum iTunesResultType: String, RawRepresentable, Codable {
     case album
     case book
     case coachedAudio = "coached-audio"
@@ -61,10 +54,33 @@ public enum iTunesResultType: String, RawRepresentable {
     case unknown
 
     public var displayTitle: String {
-        let pattern = "([a-z0-9])([A-Z])"
-
-        let regex = try? NSRegularExpression(pattern: pattern, options: [])
-        let range = NSRange(location: 0, length: self.rawValue.count)
-        return regex?.stringByReplacingMatches(in: self.rawValue.replacingOccurrences(of: "-", with: " "), options: [], range: range, withTemplate: "$1 $2").capitalized ?? ""
+        switch self {
+        case .album:
+            return "Albums"
+        case .book:
+            return "Books"
+        case .coachedAudio:
+            return "Coached Audio"
+        case .featureMovie:
+            return "Movies"
+        case .interactiveBooklet:
+            return "Interactive Booklet"
+        case .musicVideo:
+            return "Music Video"
+        case .pdfPodcast:
+            return "PDF Podcast"
+        case .podcastEpisode:
+            return "Podcast Episodes"
+        case .softwarePackage:
+            return "Software"
+        case .song:
+            return "Songs"
+        case .tvEpisode:
+            return "TV Episodes"
+        case .artist:
+            return "Artists"
+        case .unknown:
+            return "Unknown"
+        }
     }
 }
