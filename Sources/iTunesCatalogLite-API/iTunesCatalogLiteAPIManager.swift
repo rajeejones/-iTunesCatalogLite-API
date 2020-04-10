@@ -105,11 +105,7 @@ extension iTunesCatalogLiteManager {
         })
 
         let jsonData: Data?
-        if #available(iOS 11.0, *) {
-            jsonData = try? JSONSerialization.data(withJSONObject: response, options: .sortedKeys)
-        } else {
-            jsonData = try? JSONSerialization.data(withJSONObject: response, options: .prettyPrinted)
-        }
+        jsonData = try? JSONSerialization.data(withJSONObject: response, options: .sortedKeys)
 
         return jsonData
     }

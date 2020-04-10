@@ -5,6 +5,11 @@ import PackageDescription
 
 let package = Package(
     name: "iTunesCatalogLite-API",
+    platforms: [
+        .macOS(SupportedPlatform.MacOSVersion.v10_13),
+        .iOS(SupportedPlatform.IOSVersion.v11),
+        .tvOS(SupportedPlatform.TVOSVersion.v11)
+    ],
     products: [
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
         .library(
